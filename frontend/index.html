@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevOps TaskFlow</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>DevOps TaskFlow</h1>
+        <p>Simple DevOps Task Management Application</p>
+
+        <div class="task-input">
+            <input
+                type="text"
+                id="taskInput"
+                placeholder="Enter a task"
+            >
+
+            <button onclick="addTask()">Add Task</button>
+        </div>
+
+        <h2>Tasks</h2>
+
+        <ul id="taskList"></ul>
+
+    </div>
+
+    <script>
+
+        async function loadTasks() {
+
+            const response = await fetch("/api/tasks");
+
+            const tasks = await response.json();
+
+            const taskList = document.getElementById("taskList");
+
+            taskList.innerHTML = "";
+
+            tasks.forEach(task => {
+
+                const li = document.createElement("li");
+
+                li.innerHTML = `
+                    <span>
+                        ${task.title} - ${task.status}
+                    </span>
+
+                    <button onclick="deleteTask(${task.id})">
+                        Delete
+                    </button>
+                `;
+
+                taskList.appendChild(li);
+
+            });
+        }
+
+
+        async function addTask() {
+
+            const input = document.getElementById("taskInput");
+
+            const title = input.value.trim();
+
+            if (!title) {
+                return;
+            }
+
+            await fetch("/api/tasks", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    title: title
+                })
+
+            });
+
+            input.value = "";
+
+            loadTasks();
+        }
+
+
+        async function deleteTask(id) {
+
+            await fetch(`/api/tasks/${id}`, {
+                method: "DELETE"
+            });
+
+            loadTasks();
+        }
+
+
+        loadTasks();
+
+    </script>
+
+</body>
+</html>
