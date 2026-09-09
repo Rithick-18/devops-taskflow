@@ -1,4 +1,4 @@
-name: Docker Build and Push
+name: Docker Build Push and Deploy
 
 on:
   push:
@@ -6,10 +6,11 @@ on:
       - main
 
 jobs:
-  docker-build-push:
+  build-push-deploy:
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -30,3 +31,15 @@ jobs:
 
       - name: Push frontend image
         run: docker push rithickdev/taskflow-frontend:latest
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd ~/devops-taskflow
+            docker compose pull
+            docker compose up -d
+            docker image prune -f
