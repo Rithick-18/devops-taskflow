@@ -1,4 +1,4 @@
-name: Docker Build
+name: Docker Build and Push
 
 on:
   push:
@@ -6,13 +6,27 @@ on:
       - main
 
 jobs:
-  docker-build:
+  docker-build-push:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Build Docker images
-        run: |
-          docker compose build
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build backend image
+        run: docker build -t rithickdev/taskflow-backend:latest ./backend
+
+      - name: Build frontend image
+        run: docker build -t rithickdev/taskflow-frontend:latest ./frontend
+
+      - name: Push backend image
+        run: docker push rithickdev/taskflow-backend:latest
+
+      - name: Push frontend image
+        run: docker push rithickdev/taskflow-frontend:latest
